@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>/neuec improved</title>
+</head>
+
+<body onload="">
+	<input id="presetEntry" type="text" maxlength="524288" placeholder="Paste Preset Here">
+	<button id="importData" onclick="sausageWeinerJordan()">Import</button>
+	<button id="importData" onclick="printOutputClipboard()">Import from Clipboard</button>
+	<p id="testOutput"></p>
+	<br />
+	<table>
+		<thead>
+			<tr>
+				<th>Enchantment</th>
+				<th>Operation</th>
+				<th>Lvl</th>
+				<th>Colour</th>
+				<th>Format</th>
+				<th>Options</th>
+			</tr>
+		</thead>
+		<tbody id="presetEntryTable"></tbody>
+	</table>
+	<button onclick="fortySevenCaprisun()">Generate Test Output</button>
+	<button onclick="addRow()">Add</button>
+	<script src="script.js"></script>
+</body>
+
+</html>
