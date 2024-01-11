@@ -7,10 +7,10 @@
 	<title>/neuec improved</title>
 </head>
 
-<body onload="">
-	<input id="presetEntry" type="text" maxlength="524288" placeholder="Paste Preset Here">
-	<button id="importData" onclick="sausageWeinerJordan()">Import</button>
-	<button id="importData" onclick="printOutputClipboard()">Import from Clipboard</button>
+<body>
+	<input id="presetEntry" type="text" placeholder="Paste Preset Here">
+	<button id="importData" onclick="importPresetFromInput()">Import</button>
+	<button id="importDataClipboard" onclick="">Import from Clipboard</button>
 	<p id="testOutput"></p>
 	<br />
 	<table>
@@ -21,14 +21,24 @@
 				<th>LVL</th>
 				<th>COL</th>
 				<th>DEL</th>
-				<th></th>
 			</tr>
 		</thead>
 		<tbody id="presetEntryTable"></tbody>
+		<tbody>
+			<tr>
+				<td></td>
+				<td></td>
+				<td style="text-align: center">
+					<button onclick="addEntry()">Add</button>
+				</td>
+			</tr>
+		</tbody>
 	</table>
-	<button onclick="fortySevenCaprisun()">Generate Test Output</button>
-	<button onclick="kerfuffle()">Add</button>
-	<script src="script.js"></script>
+	<button onclick="exportPresetInfo()">Export Preset</button>
+	<button onclick="resetEntries()">Reset</button>
+	<button onclick="clearAllEntries()">Clear</button>
+	<p id="output" style="width: 90vw; text-wrap: pretty; overflow-wrap: break-word;"></p>
+	<script src="./script.js"></script>
 </body>
 
 </html>
