@@ -1,199 +1,328 @@
 const presetDataEntry = document.getElementById('presetEntry');
 
-class presetData {
-	stringDecoded =
-		'NEUEC/["[a-zA-Z\\- ]+:>:9:6:0","[a-zA-Z\\- ]+:>:6:c:0","[a-zA-Z\\- ]+:>:5:5:0","Experience:>:3:5:0","Life Steal:>:3:5:0","Scavenger:>:3:5:0","Looting:>:3:5:0"]';
-	presetDataArray = [
-		'"[a-zA-Z\\- ]+:>:9:6:0"',
-		'"[a-zA-Z\\- ]+:>:6:c:0"',
-		'"[a-zA-Z\\- ]+:>:5:5:0"',
-		'"Experience:>:3:5:0"',
-		'"Life Steal:>:3:5:0"',
-		'"Scavenger:>:3:5:0"',
-		'"Looting:>:3:5:0"',
-	];
-	presetDataArraySplit = [
-		['[a-zA-Z\\- ]+', '>', '9', '6', '0'],
-		['[a-zA-Z\\- ]+', '>', '6', 'c', '0'],
-		['[a-zA-Z\\- ]+', '>', '5', '5', '0'],
-		['Experience', '>', '3', '5', '0'],
-		['Life Steal', '>', '3', '5', '0'],
-		['Scavenger', '>', '3', '5', '0'],
-		['Looting', '>', '3', '5', '0'],
-	];
+class Preset {
+	stringDecoded;
+	presetDataArray;
+	presetEditingArray;
 
-	constructor() {}
+	restoreDefaults() {
+		this.stringDecoded =
+			'NEUEC/["[a-zA-Z\\- ]+:>:9:6:0","[a-zA-Z\\- ]+:>:6:c:0","[a-zA-Z\\- ]+:>:5:5:0","Experience:>:3:5:0","Life Steal:>:3:5:0","Scavenger:>:3:5:0","Looting:>:3:5:0"]';
+		this.presetDataArray = [
+			'"[a-zA-Z\\- ]+:>:9:6:0"',
+			'"[a-zA-Z\\- ]+:>:6:c:0"',
+			'"[a-zA-Z\\- ]+:>:5:5:0"',
+			'"Experience:>:3:5:0"',
+			'"Life Steal:>:3:5:0"',
+			'"Scavenger:>:3:5:0"',
+			'"Looting:>:3:5:0"',
+		];
+		this.presetEditingArray = [
+			['[a-zA-Z\\- ]+', '>', '9', '6', 0],
+			['[a-zA-Z\\- ]+', '>', '6', 'c', 0],
+			['[a-zA-Z\\- ]+', '>', '5', '5', 0],
+			['Experience', '>', '3', '5', 0],
+			['Life Steal', '>', '3', '5', 0],
+			['Scavenger', '>', '3', '5', 0],
+			['Looting', '>', '3', '5', 0],
+		];
+	}
+
+	constructor() {
+		this.restoreDefaults();
+	}
 }
 
-const preset = new presetData();
+const MOVE_DIRECTION = {
+	Up: 0,
+	Down: 1,
+};
 
-/**
- * Probably Takes Preset Input
- */
-function sausageWeinerJordan() {
+const preset = new Preset();
+
+function importPresetFromInput() {
 	preset.stringDecoded = atob(presetDataEntry.value)
 		.replace(/\\\\/g, '\\')
 		.replace(/\\u003c/g, '<')
 		.replace(/\\u003d/g, '=')
 		.replace(/\\u003e/g, '>');
-	if (!preset.stringDecoded.startsWith('NEUEC/')) {
-		console.error('Invalid Entry');
+	if (
+		!preset.stringDecoded.startsWith('NEUEC/[') &&
+		!preset.stringDecoded.endsWith(']')
+	)
 		return;
-	}
 
 	preset.presetDataArray = preset.stringDecoded
 		.substring(0, preset.stringDecoded.length - 1)
 		.substring(7)
 		.split(',');
 
-	preset.presetDataArraySplit = preset.presetDataArray.slice();
-	preset.presetDataArraySplit.forEach((presetEntry, index) => {
-		preset.presetDataArraySplit[index] = presetEntry.substring(
+	preset.presetEditingArray = preset.presetDataArray.slice();
+	preset.presetEditingArray.forEach((presetEntry, index) => {
+		preset.presetEditingArray[index] = presetEntry.substring(
 			1,
 			presetEntry.length - 1
 		);
-		preset.presetDataArraySplit[index] =
-			preset.presetDataArraySplit[index].split(':');
-	});
 
-	console.log(preset);
-	biflerCofunction();
+		preset.presetEditingArray[index] =
+			preset.presetEditingArray[index].split(':');
+		preset.presetEditingArray[index][4] = parseInt(
+			preset.presetEditingArray[index][4]
+		);
+	});
+	updateTableData();
 }
 
-/**
- * Should convert preset data array into preset string and convert to base64.
- *
- * Output should be usable inside of /neuec directly.
- * @returns Base64 Encoded /neuec Preset String
- */
-function fortySevenCaprisun() {
+function exportPresetInfo() {
 	preset.presetDataArray = [];
-	preset.presetDataArraySplit.forEach((presetEntry, index) => {
+	preset.presetEditingArray.forEach((presetEntry, entryIndex) => {
 		preset.presetDataArray.push(`"${presetEntry.join(':')}"`);
 	});
-	let presetString = `NEUEC/[${preset.presetDataArray.toString()}]`
+	const presetString = `NEUEC/[${preset.presetDataArray.toString()}]`
 		.replace(/\\/g, '\\\\')
 		.replace(/</g, '\\u003c')
 		.replace(/=/g, '\\u003d')
 		.replace(/>/g, '\\u003e');
-	console.log(btoa(presetString));
-	return btoa(presetString);
+	document.getElementById('output').textContent = btoa(presetString);
 }
 
-function biflerCofunction() {
+function updateTableData() {
 	const tableBody = document.getElementById('presetEntryTable');
 	tableBody.innerHTML = '';
 
-	preset.presetDataArraySplit.forEach((row, rowIndex) => {
+	preset.presetEditingArray.forEach((entry, entryIndex) => {
 		const newRow = document.createElement('tr');
+		let cell;
+		let cellInput;
+		entry.forEach((cellData, cellIndex) => {
+			switch (cellIndex) {
+				case 0:
+					cell = document.createElement('td');
+					cellInput = document.createElement('input');
 
-		row.forEach((cellData, colIndex) => {
-			if (colIndex == 4) {
-				const deleteButton = document.createElement('button');
-				deleteButton.textContent = 'Delete';
-				deleteButton.onclick = () => deleteRow(rowIndex);
-				newRow.appendChild(deleteButton);
+					cellInput.value = cellData;
+					cellInput.id = 'textInput';
+					cellInput.onchange = function input() {
+						preset.presetEditingArray[entryIndex][cellIndex] =
+							this.value;
+					};
+					cell.appendChild(cellInput);
+					newRow.appendChild(cell);
+					break;
+				case 1:
+					cell = document.createElement('td');
+					cellInput = document.createElement('input');
+					cellInput.addEventListener('keyup', function () {
+						this.value = this.value.match(/[<=>]/g, '');
+					});
+					cellInput.maxLength = 1;
 
-				const checkboxesChecked = [];
-				if (cellData - 16 >= 0) {
-					checkboxesChecked.push(true);
-					cellData -= 16;
-				} else checkboxesChecked.push(false);
-				if (cellData - 8 >= 0) {
-					checkboxesChecked.push(true);
-					cellData -= 8;
-				} else checkboxesChecked.push(false);
-				if (cellData - 2 >= 0) {
-					checkboxesChecked.push(true);
-					cellData -= 2;
-				} else checkboxesChecked.push(false);
-				if (cellData - 1 >= 0) {
-					checkboxesChecked.push(true);
-					cellData -= 1;
-				} else checkboxesChecked.push(false);
+					cellInput.value = cellData;
+					cellInput.onchange = function input() {
+						preset.presetEditingArray[entryIndex][cellIndex] =
+							this.value;
+					};
+					cell.appendChild(cellInput);
+					newRow.appendChild(cell);
+					break;
+				case 2:
+					cell = document.createElement('td');
+					cellInput = document.createElement('input');
+					cellInput.addEventListener('keyup', function () {
+						this.value = this.value.match(/[0-9]+/g, '');
+					});
 
-				const cell = document.createElement('td');
-				for (let i = 0; i < 4; i++) {
-					const checkbox = document.createElement('input');
-					const container = document.createElement('div');
-					checkbox.type = 'checkbox';
-					checkbox.checked = checkboxesChecked[i];
-					cell.appendChild(container);
-					switch (i) {
-						case 0:
-							container.textContent = 'S';
-							break;
-						case 1:
-							container.textContent = 'U';
-							break;
-						case 2:
-							container.textContent = 'I';
-							break;
-						case 3:
-							container.textContent = 'B';
-							break;
+					cellInput.value = cellData;
+					cellInput.onchange = function input() {
+						preset.presetEditingArray[entryIndex][cellIndex] =
+							this.value;
+					};
+					cell.appendChild(cellInput);
+					newRow.appendChild(cell);
+					break;
+				case 3:
+					cell = document.createElement('td');
+					cellInput = document.createElement('input');
+					cellInput.addEventListener('keyup', function () {
+						this.value = this.value.match(/[a-fzZ0-9]/g, '');
+					});
+					cellInput.maxLength = 1;
+
+					cellInput.value = cellData;
+					cellInput.onchange = function input() {
+						preset.presetEditingArray[entryIndex][cellIndex] =
+							cellInput.value;
+					};
+					cell.appendChild(cellInput);
+					newRow.appendChild(cell);
+					break;
+				case 4:
+					cell = document.createElement('td');
+					const deleteButton = document.createElement('button');
+					deleteButton.textContent = 'Delete';
+					deleteButton.onclick = () => deleteEntry(entryIndex);
+					cell.appendChild(deleteButton);
+					newRow.appendChild(cell);
+
+					cell = document.createElement('td');
+					const moveUp = document.createElement('button');
+					moveUp.textContent = '/\\';
+					moveUp.onclick = () =>
+						moveEntry(entryIndex, MOVE_DIRECTION.Up);
+					const moveDown = document.createElement('button');
+					moveDown.textContent = '\\/';
+					moveDown.onclick = () =>
+						moveEntry(entryIndex, MOVE_DIRECTION.Down);
+					if (entryIndex > 0) cell.appendChild(moveUp);
+					if (entryIndex < preset.presetEditingArray.length - 1)
+						cell.appendChild(moveDown);
+					newRow.appendChild(cell);
+
+					const checkboxesChecked = [false, false, false, false];
+					if (cellData - 16 >= 0) {
+						checkboxesChecked[3] = true;
+						cellData -= 16;
 					}
-					container.appendChild(checkbox);
-				}
+					if (cellData - 8 >= 0) {
+						checkboxesChecked[1] = true;
+						cellData -= 8;
+					}
+					if (cellData - 2 >= 0) {
+						checkboxesChecked[2] = true;
+						cellData -= 2;
+					}
+					if (cellData - 1 >= 0) {
+						checkboxesChecked[0] = true;
+						cellData -= 1;
+					}
 
-				newRow.appendChild(cell);
-			} else {
-				const cell = document.createElement('td');
-				const cellInput = document.createElement('input');
-				cellInput.value = cellData;
-				cellInput.onchange = () =>
-					(preset.presetDataArraySplit[rowIndex][colIndex] =
-						cellInput.value);
-				cell.appendChild(cellInput);
-				newRow.appendChild(cell);
+					cell = document.createElement('td');
+					for (let i = 0; i < 4; i++) {
+						const checkbox = document.createElement('input');
+						const container = document.createElement('div');
+						checkbox.type = 'checkbox';
+						checkbox.checked = checkboxesChecked[i];
+						cell.appendChild(container);
+						switch (i) {
+							case 0:
+								container.textContent = 'B';
+								checkbox.addEventListener(
+									'change',
+									function () {
+										if (checkbox.checked == true)
+											preset.presetEditingArray[
+												entryIndex
+											][4] += 1;
+										else {
+											preset.presetEditingArray[
+												entryIndex
+											][4] -= 1;
+										}
+									}
+								);
+								break;
+							case 1:
+								container.textContent = 'U';
+								checkbox.addEventListener(
+									'change',
+									function () {
+										if (checkbox.checked == true)
+											preset.presetEditingArray[
+												entryIndex
+											][4] += 8;
+										else {
+											preset.presetEditingArray[
+												entryIndex
+											][4] -= 8;
+										}
+									}
+								);
+								break;
+							case 2:
+								container.textContent = 'I';
+								checkbox.addEventListener(
+									'change',
+									function () {
+										if (checkbox.checked == true)
+											preset.presetEditingArray[
+												entryIndex
+											][4] += 2;
+										else {
+											preset.presetEditingArray[
+												entryIndex
+											][4] -= 2;
+										}
+									}
+								);
+								break;
+							case 3:
+								container.textContent = 'S';
+								checkbox.addEventListener(
+									'change',
+									function () {
+										if (checkbox.checked == true)
+											preset.presetEditingArray[
+												entryIndex
+											][4] += 16;
+										else {
+											preset.presetEditingArray[
+												entryIndex
+											][4] -= 16;
+										}
+									}
+								);
+								break;
+						}
+						container.appendChild(checkbox);
+					}
+
+					newRow.appendChild(cell);
+					break;
 			}
 		});
-
 		tableBody.appendChild(newRow);
 	});
 }
 
-function bootyFart() {}
-function ankleNinjaMonkey() {}
-
-function vasectomyCore() {
-	const newRow = [
-		'[a-zA-Z\\- ]+',
-		'placeholder',
-		'placeholder',
-		'placeholder',
-		'placeholder',
-	];
-	preset.presetDataArraySplit.push(newRow);
-	biflerCofunction();
+function clearAllEntries() {
+	preset.presetEditingArray = [];
+	updateTableData();
 }
 
-function kerfuffle() {
-	biflerCofunction();
-	console.error('Not Implemented Yet');
+function resetEntries() {
+	preset.restoreDefaults();
+	updateTableData();
 }
 
-function blunderbussChatter(index) {
-	preset.presetDataArraySplit.splice(index, 1);
-	biflerCofunction();
+function addEntry() {
+	const newRow = ['[a-zA-Z\\- ]+', '>', '5', '9', 0];
+	preset.presetEditingArray.push(newRow);
+	updateTableData();
 }
 
-biflerCofunction();
+function moveEntry(entryIndex, moveDirection) {
+	if (entryIndex < 0 || entryIndex > preset.presetEditingArray.length - 1)
+		return;
+	if (moveDirection == MOVE_DIRECTION.Up)
+		preset.presetEditingArray.splice(
+			entryIndex - 1,
+			0,
+			preset.presetEditingArray.splice(entryIndex, 1)[0]
+		);
+	else {
+		preset.presetEditingArray.splice(
+			entryIndex + 1,
+			0,
+			preset.presetEditingArray.splice(entryIndex, 1)[0]
+		);
+	}
 
-/*
-bold => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MSJd => 												1
-underline => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6OCJd => 											8
-italic => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MiJd => 												2
-strikethrough => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MTYiXQ== => 									16
-bold + underline => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6OSJd => 						1+8=		9
-bold + italic => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MyJd => 							1+2=		3
-bold + strikethrough => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MTciXQ== => 				1+16=		17
-bold + underline + italic => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MTEiXQ== => 			1+8+2=		11
-bold + underline + strikethrough => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MjUiXQ== => 	1+8+16=		5
-bold + italic + strikethrough => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MTkiXQ== => 		1+2+16=		19
-underline + italic => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MTAiXQ== => 					8+2=		10
-underline + italic + strikethrough => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MjYiXQ== => 	8+2+16=		26
-underline + strikethrough => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MjQiXQ== => 			8+16=		24
-italic + strikethrough => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MTgiXQ== => 				2+16=		18
-all => TkVVRUMvWyJbYS16QS1aXFwtIF0rOlx1MDAzZTo5OjY6MjciXQ== => 									1+8+2+16=	27
-*/
+	updateTableData();
+}
+
+function deleteEntry(entryIndex) {
+	preset.presetEditingArray.splice(entryIndex, 1);
+	updateTableData();
+}
+
+updateTableData();
