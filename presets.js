@@ -161,7 +161,11 @@ function updateTableData() {
 					const deleteButton = document.createElement('button');
 					deleteButton.textContent = 'Delete';
 					deleteButton.onclick = () => deleteEntry(entryIndex);
+					const addButton = document.createElement('button');
+					addButton.textContent = 'Add';
+					addButton.onclick = () => addEntry(entryIndex);
 					cell.appendChild(deleteButton);
+					cell.appendChild(addButton);
 					newRow.appendChild(cell);
 
 					cell = document.createElement('td');
@@ -294,9 +298,9 @@ function resetEntries() {
 	updateTableData();
 }
 
-function addEntry() {
+function addEntry(entryIndex) {
 	const newRow = ['[a-zA-Z\\- ]+', '>', '5', '9', 0];
-	preset.presetEditingArray.push(newRow);
+	preset.presetEditingArray.splice(entryIndex + 1, 0, newRow);
 	updateTableData();
 }
 
